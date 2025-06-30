@@ -44,7 +44,33 @@ const player6 = {
   MANOBRABILIDADE: 2,
   PODER: 5,
   PONTOS: 0
+};
+
+const readline = require('readline').createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const players = [player1, player2, player3, player4, player5, player6];
+
+function escolherPersonagem(msg) {
+  return new Promise((resolve) => {
+    console.log("Escolha um personagem:");
+    players.forEach((p, i) => {
+      console.log(`${i + 1}. ${p.NOME}`);
+    });
+    readline.question(msg, (choice) => {
+      const index = parseInt(choice) - 1;
+      if (index >= 0 && index < players.length) {
+        resolve(players[index]);
+      } else {
+        console.log("Escolha inválida.");
+        resolve(escolherPersonagem(msg));
+      }
+    });
+  });
 }
+
 
 async function rollDice() {
   return Math.floor(Math.random() * 6) + 1;
@@ -153,7 +179,18 @@ async function declareWinner(character1, character2) {
 };
 
 (async function main() {
-    console.log(`🏁🚨Corrida entre ${player1.NOME} e ${player2.NOME} começando...\n`);
-    await playRaceEngine(player1, player2);
-    await declareWinner(player1, player2);
+  const jogador = await escolherPersonagem("Digite o número do SEU personagem: ");
+  let oponente;
+
+  // garantir que o oponente não seja o mesmo personagem
+  while (true) {
+    oponente = await escolherPersonagem("Digite o número do OPONENTE: ");
+    if (oponente.NOME !== jogador.NOME) break;
+    console.log("Você não pode escolher o mesmo personagem como oponente!");
+  }
+
+  console.log(`\n🏁🚨 Corrida entre ${jogador.NOME} e ${oponente.NOME} começando...\n`);
+  await playRaceEngine(jogador, oponente);
+  await declareWinner(jogador, oponente);
+  readline.close();
 })();
